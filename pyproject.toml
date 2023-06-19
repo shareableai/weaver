@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "weaver"
+version = "0.0.1"
+description = "Serialize and Deserialize Python Classes"
+authors = ["Lissa Hyacinth <lissa@shareableai.com>"]
+license = "LGPL-3.0-or-later"
+readme = "README.md"
+packages = [{include = "weaver"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+pyarrow = ">=9,<=11"
+artefactlink = ">=0.4.1"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+pytest = "*"
+pytest-env = "*"
+pytest-cov = "*"
+pytest-lazy-fixture = "*"
+coverage = "*"
+
+[tool.poetry.group.dev.dependencies]
+scikit-learn = "^1.2.2"
+transformers = "^4.28.1"
+requests = "^2.29.0"
+pillow = "^9.5.0"
+torch = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

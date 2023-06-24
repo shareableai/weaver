@@ -31,11 +31,12 @@ def read_json_dict(
         if key not in item:
             if "_id" in item:
                 return ArtefactID(item["_id"])
+            print(f"Unusual key {key=} found")
             raise IncorrectParseError
         return WovenClass(
             pointer=item["pointer"],
             metadata=ItemMetadataWithVersion.read(item["metadata"]),
-            artefacts=item["artefacts"],
+            artefacts=set([ArtefactID.from_dict(x) for x in item["artefacts"]]),
             documentation={
                 ItemMetadata.read(key): value
                 for (key, value) in item["documentation"].items()
@@ -63,6 +64,12 @@ class ArtefactID:
             documentation={},
             json={"_id": self._id},
         ).as_dict()
+    
+    @staticmethod
+    def from_dict(item: dict) -> ArtefactID:
+        return ArtefactID(
+            _id=item['json']['_id']
+        )
 
     def __hash__(self) -> int:
         return self.artefact_id
@@ -92,11 +99,26 @@ class ItemMetadata:
         return ItemMetadata(module=module, name=name)
 
     @staticmethod
-    def read(item: Dict[str, Union[Tuple[str], str]]) -> ItemMetadata:
+    def read(item: Dict[str, Union[Tuple[str], str]] | str) -> ItemMetadata:
+        if isinstance(item, str):
+            return ItemMetadata.from_str(item)
         for key in ItemMetadata.__annotations__.keys():
             if key not in item:
+                print(f"key {key=} not in item")
+                print(f"{item=}")
                 raise IncorrectParseError
         return ItemMetadata(item["module"], item["name"])
+    
+    def to_str(self) -> str:
+        return f"{'$'.join(self.module)}:{self.name}"
+
+    @staticmethod
+    def from_str(item: str) -> ItemMetadata:
+        module, name = item.split(':')
+        return ItemMetadata(
+            tuple(module.split('$')),
+            name
+        )
 
 
 @dataclass
@@ -126,6 +148,7 @@ class ItemMetadataWithVersion(ItemMetadata):
     def read(item: Dict[str, Union[Tuple[str], str, str]]) -> ItemMetadataWithVersion:
         for key in ItemMetadataWithVersion.__annotations__.keys():
             if key not in item:
+                print(f"key {key=} not in item")
                 raise IncorrectParseError
         if item["version"] == "AllVersions":
             version = AllVersions()
@@ -139,7 +162,7 @@ class ItemMetadataWithVersion(ItemMetadata):
         return {
             "module": list(self.module),
             "name": self.name,
-            "version": str(self.version),
+            "version": self.version.__str__(),
         }
 
     def __hash__(self) -> int:
@@ -208,7 +231,7 @@ class WovenClass:
             "metadata": self.metadata.as_dict(),
             "artefacts": [self._convert(a) for a in list(self.artefacts)],
             "documentation": {
-                key.name: self._convert(value)
+                key.to_str(): self._convert(value)
                 for (key, value) in self.documentation.items()
             },
             "json": self._convert(self.json),
@@ -240,5 +263,6 @@ class CacheMarker:
     def read(item: Dict[str, Any]) -> CacheMarker:
         for key in ["__artefact_id__"]:
             if key not in item:
+                print(f"key {key=} not in item")
                 raise IncorrectParseError
         return CacheMarker(item["__artefact_id__"])

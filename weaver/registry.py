@@ -252,7 +252,7 @@ class WeaverArtefactIDDeserializer(WeaverDeserializer[ArtefactID]):
         cache: Dict[int, Any],
         unweave_fn: Callable,
     ) -> ArtefactID:
-        return ArtefactID(int(item.json["__inner__"]))
+        return ArtefactID(int(item.json["_id"]))
 
 
 @dataclass

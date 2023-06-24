@@ -45,7 +45,6 @@ def _weave(
         return item
     if item_id in cache:
         return CacheMarker(item_id)
-    print(f"{item=}")
     if (serializer := registry.try_get_serializer(item)) is not None:
         return serializer.weave(
             item, registry, cache, partial(_weave, registry=registry, cache=cache)

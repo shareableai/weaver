@@ -70,7 +70,9 @@ def generic_write(
     except TypeError:
         return write_as_artefact(item)
 
-    if hasattr(item, "__getstate__"):
+    if isinstance(item, dict):
+        state = item
+    elif hasattr(item, "__getstate__"):
         state = item.__getstate__()
     else:
         state = item.__dict__

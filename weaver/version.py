@@ -42,7 +42,7 @@ class Version:
     @staticmethod
     def from_str(item: str) -> Version:
         if "+" in item:
-            versioning, _ = item.split("+", maxsplit=1)
+            item, _ = item.split("+", maxsplit=1)
         if item.count(".") == 0:
             major = int(item)
             return Version(major, 0, 0)

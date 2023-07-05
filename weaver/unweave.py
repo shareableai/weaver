@@ -48,9 +48,7 @@ def _unweave(
         return deserializer.unweave(
             nest, registry, cache, partial(_unweave, registry=registry, cache=cache)
         )
-    state = {
-        key: _unweave(value, registry, cache) for (key, value) in nest.json.items()
-    }
+    state = {key: _unweave(value, registry, cache) for (key, value) in nest.json.items()}
     base_class = identify_class(nest.metadata.module, nest.metadata.name)
     return default_unweave(base_class, state)
 

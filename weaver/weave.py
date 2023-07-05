@@ -144,14 +144,12 @@ def generic_write(
         artefacts = artefacts | {documentation_artefact}
     else:
         documentation = {}
+    method_documentation = {key: _weave_fn(value, registry, cache) for (key, value) in getmembers(item, inspect.ismethod)}
     return WovenClass(
         pointer=id(item),
         metadata=ItemMetadataWithVersion.detect(item),
         artefacts=artefacts,
         documentation=documentation,
-        json=(
-                {key: _weave_fn(value, registry, cache) for (key, value)
-                 in getmembers(item, inspect.ismethod)} |
-                {key: _weave(value, registry, cache) for (key, value) in state.items()}
-        )
+        method_source={method_name: fn_source for (method_name, fn_source) in method_documentation.items() if fn_source is not None},
+        json={key: _weave(value, registry, cache) for (key, value) in state.items()}
     )

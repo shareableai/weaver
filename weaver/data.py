@@ -41,6 +41,7 @@ def read_json_dict(
                 ItemMetadata.read(key): value
                 for (key, value) in item["documentation"].items()
             },
+            method_source=item["method_source"],
             json={
                 read_json_dict(key): read_json_dict(value)
                 for (key, value) in item["json"].items()
@@ -62,6 +63,7 @@ class ArtefactID:
             ),
             artefacts=set(),
             documentation={},
+            method_source={},
             json={"_id": self._id},
         ).as_dict()
     
@@ -175,17 +177,8 @@ class WovenClass:
     metadata: ItemMetadataWithVersion
     artefacts: Set[ArtefactID]
     documentation: Dict[ItemMetadata, str]
+    method_source: Dict[str, str]
     json: Dict[str, Any]
-
-    def consume(self, key: str, other: WovenClass) -> WovenClass:
-        self.json[key] = other.json
-        return WovenClass(
-            pointer=self.pointer,
-            metadata=self.metadata,
-            artefacts=self.artefacts | other.artefacts,
-            documentation=self.documentation | other.documentation,
-            json=self.json,
-        )
 
     @classmethod
     def _convert(cls, item) -> Any:
@@ -234,6 +227,7 @@ class WovenClass:
                 key.to_str(): self._convert(value)
                 for (key, value) in self.documentation.items()
             },
+            "method_source": self.method_source,
             "json": self._convert(self.json),
         }
 

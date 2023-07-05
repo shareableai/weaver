@@ -34,11 +34,11 @@ class WeaverSerializer(Generic[T], WeaverSerde):
 
     @classmethod
     def weave(
-        cls,
-        item: T,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        weave_fn: Callable,
+            cls,
+            item: T,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            weave_fn: Callable,
     ) -> WovenClass:
         raise NotImplementedError
 
@@ -52,11 +52,11 @@ class WeaverDeserializer(Generic[T], WeaverSerde):
 
     @classmethod
     def unweave(
-        cls,
-        woven_class: WovenClass,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        unweave_fn: Callable,
+            cls,
+            woven_class: WovenClass,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            unweave_fn: Callable,
     ) -> T:
         raise NotImplementedError
 
@@ -72,17 +72,18 @@ class WeaverBytesSerializer(WeaverSerializer[bytes]):
 
     @classmethod
     def weave(
-        cls,
-        item: bytes,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        weave_fn: Callable,
+            cls,
+            item: bytes,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            weave_fn: Callable,
     ) -> WovenClass:
         return WovenClass(
             pointer=id(item),
             metadata=cls._metadata,
             artefacts=set(),
             documentation={cls._metadata: bytes.__doc__},
+            method_source={},
             json={"__inner__": str(item)},
         )
 
@@ -94,11 +95,11 @@ class WeaverBytesDeserializer(WeaverDeserializer[bytes]):
 
     @classmethod
     def unweave(
-        cls,
-        item: WovenClass,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        unweave_fn: Callable,
+            cls,
+            item: WovenClass,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            unweave_fn: Callable,
     ) -> Any:
         return ast.literal_eval(item.json["__inner__"])
 
@@ -110,17 +111,18 @@ class WeaverTupleSerializer(WeaverSerializer[tuple]):
 
     @classmethod
     def weave(
-        cls,
-        item: Tuple,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        weave_fn: Callable,
+            cls,
+            item: Tuple,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            weave_fn: Callable,
     ) -> WovenClass:
         return WovenClass(
             pointer=id(item),
             metadata=cls._metadata,
             artefacts=set(),
             documentation={cls._metadata: Tuple.__doc__},
+            method_source={},
             json={"__inner__": tuple([weave_fn(i) for i in item])},
         )
 
@@ -132,11 +134,11 @@ class WeaverTupleDeserializer(WeaverDeserializer[tuple]):
 
     @classmethod
     def unweave(
-        cls,
-        item: WovenClass,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        unweave_fn: Callable,
+            cls,
+            item: WovenClass,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            unweave_fn: Callable,
     ) -> Tuple:
         return tuple(unweave_fn(i) for i in item.json["__inner__"])
 
@@ -148,17 +150,18 @@ class WeaverSetSerializer(WeaverSerializer[set]):
 
     @classmethod
     def weave(
-        cls,
-        item: Set,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        weave_fn: Callable,
+            cls,
+            item: Set,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            weave_fn: Callable,
     ) -> WovenClass:
         return WovenClass(
             pointer=id(item),
             metadata=cls._metadata,
             artefacts=set(),
             documentation={cls._metadata: Set.__doc__},
+            method_source={},
             json={"__inner__": [weave_fn(i) for i in item]},
         )
 
@@ -170,11 +173,11 @@ class WeaverSetDeserializer(WeaverDeserializer[set]):
 
     @classmethod
     def unweave(
-        cls,
-        item: WovenClass,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        unweave_fn: Callable,
+            cls,
+            item: WovenClass,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            unweave_fn: Callable,
     ) -> Set:
         return {unweave_fn(i) for i in item.json["__inner__"]}
 
@@ -186,17 +189,18 @@ class WeaverTypeSerializer(WeaverSerializer[type]):
 
     @classmethod
     def weave(
-        cls,
-        item: Type,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        weave_fn: Callable,
+            cls,
+            item: Type,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            weave_fn: Callable,
     ) -> WovenClass:
         return WovenClass(
             pointer=id(item),
             metadata=cls._metadata,
             artefacts=set(),
             documentation={cls._metadata: Type.__doc__},
+            method_source={},
             json={"__inner__": str(item)},
         )
 
@@ -208,13 +212,13 @@ class WeaverTypeDeserializer(WeaverDeserializer[type]):
 
     @classmethod
     def unweave(
-        cls,
-        item: WovenClass,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        unweave_fn: Callable,
+            cls,
+            item: WovenClass,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            unweave_fn: Callable,
     ) -> Type:
-        breakpoint()
+        raise NotImplementedError
 
 
 class WeaverArtefactIDSerializer(WeaverSerializer[ArtefactID]):
@@ -224,17 +228,18 @@ class WeaverArtefactIDSerializer(WeaverSerializer[ArtefactID]):
 
     @classmethod
     def weave(
-        cls,
-        item: ArtefactID,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        weave_fn: Callable,
+            cls,
+            item: ArtefactID,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            weave_fn: Callable,
     ) -> WovenClass:
         return WovenClass(
             pointer=id(item),
             metadata=cls._metadata,
             artefacts=set(),
             documentation={cls._metadata: ArtefactID.__doc__},
+            method_source={},
             json={"__inner__": item.artefact_id},
         )
 
@@ -246,11 +251,11 @@ class WeaverArtefactIDDeserializer(WeaverDeserializer[ArtefactID]):
 
     @classmethod
     def unweave(
-        cls,
-        item: WovenClass,
-        registry: WeaverRegistry,
-        cache: Dict[int, Any],
-        unweave_fn: Callable,
+            cls,
+            item: WovenClass,
+            registry: WeaverRegistry,
+            cache: Dict[int, Any],
+            unweave_fn: Callable,
     ) -> ArtefactID:
         return ArtefactID(int(item.json["_id"]))
 
@@ -284,13 +289,13 @@ class WeaverRegistry:
         return registry
 
     def add_serializer(
-        self,
-        serializer: Union[
-            Type[WeaverSerializer],
-            Type[WeaverDeserializer],
-            List[Type[WeaverSerializer]],
-            List[Type[WeaverDeserializer]],
-        ],
+            self,
+            serializer: Union[
+                Type[WeaverSerializer],
+                Type[WeaverDeserializer],
+                List[Type[WeaverSerializer]],
+                List[Type[WeaverDeserializer]],
+            ],
     ) -> None:
         if isinstance(serializer, list):
             for s in serializer:
@@ -321,7 +326,7 @@ class WeaverRegistry:
                 return serializers[AllVersions()]
 
     def try_get_deserializer(
-        self, item: WovenClass
+            self, item: WovenClass
     ) -> Optional[Type[WeaverDeserializer]]:
         metadata_with_version = item.metadata
         metadata = metadata_with_version.without_version()

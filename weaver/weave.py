@@ -1,9 +1,11 @@
+import inspect
+import types
 from typing import (
     Any,
     Dict,
     Union,
     Optional,
-    List,
+    List, Callable,
 )
 
 from weaver.artefact_registry import ArtefactRegistry
@@ -21,7 +23,7 @@ from functools import partial
 
 
 def weave(
-    item: Any, registry: Optional[WeaverRegistry] = None
+        item: Any, registry: Optional[WeaverRegistry] = None
 ) -> Union[WovenClass, ArtefactID, List]:
     if registry is None:
         registry = WeaverRegistry.defaults()
@@ -31,8 +33,21 @@ def weave(
     return res
 
 
+def _weave_fn(
+        item: Callable, registry: WeaverRegistry, cache: Dict[int, Any] = None
+) -> Union[WovenClass, CacheMarker, ArtefactID, SerializeableType, None]:
+    try:
+        fn_source = inspect.getsource(item)
+        if fn_source is None:
+            raise ValueError
+        # Weave the fn_source string
+        return _weave(fn_source, registry, cache)
+    except (OSError, ValueError, TypeError):
+        return None
+
+
 def _weave(
-    item: Any, registry: WeaverRegistry, cache: Dict[int, Any] = None
+        item: Any, registry: WeaverRegistry, cache: Dict[int, Any] = None
 ) -> Union[WovenClass, CacheMarker, ArtefactID, SerializeableType, None]:
     if item is None:
         return None
@@ -60,8 +75,53 @@ def write_as_artefact(item: Any) -> ArtefactID:
     return ArtefactID(hash(resource))
 
 
+def getmembers(object, predicate=None):
+    """Return all members of an object as (name, value) pairs sorted by name.
+    Optionally, only return members that satisfy a given predicate."""
+    if inspect.isclass(object):
+        mro = (object,) + inspect.getmro(object)
+    else:
+        mro = ()
+    results = []
+    processed = set()
+    names = dir(object)
+    # :dd any DynamicClassAttributes to the list of names if object is a class;
+    # this may result in duplicate entries if, for example, a virtual
+    # attribute with the same name as a DynamicClassAttribute exists
+    try:
+        for base in object.__bases__:
+            for k, v in base.__dict__.items():
+                if isinstance(v, types.DynamicClassAttribute):
+                    names.append(k)
+    except AttributeError:
+        pass
+    for key in names:
+        # First try to get the value via getattr.  Some descriptors don't
+        # like calling their __get__ (see bug #1785), so fall back to
+        # looking in the __dict__.
+        try:
+            value = getattr(object, key)
+            # handle the duplicate key
+            if key in processed:
+                raise AttributeError
+        except (RuntimeError, AttributeError):
+            for base in mro:
+                if key in base.__dict__:
+                    value = base.__dict__[key]
+                    break
+            else:
+                # could be a (currently) missing slot member, or a buggy
+                # __dir__; discard and move on
+                continue
+        if not predicate or predicate(value):
+            results.append((key, value))
+        processed.add(key)
+    results.sort(key=lambda pair: pair[0])
+    return results
+
+
 def generic_write(
-    cache: Dict[int, Any], registry: WeaverRegistry, item: Any
+        cache: Dict[int, Any], registry: WeaverRegistry, item: Any
 ) -> Union[WovenClass, ArtefactID]:
     if hasattr(item, "__pyx_vtable__"):
         return write_as_artefact(item)
@@ -89,5 +149,9 @@ def generic_write(
         metadata=ItemMetadataWithVersion.detect(item),
         artefacts=artefacts,
         documentation=documentation,
-        json={key: _weave(value, registry, cache) for (key, value) in state.items()},
+        json=(
+                {key: _weave_fn(value, registry, cache) for (key, value)
+                 in getmembers(item, inspect.ismethod)} |
+                {key: _weave(value, registry, cache) for (key, value) in state.items()}
+        )
     )

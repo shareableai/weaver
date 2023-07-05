@@ -23,6 +23,9 @@ class ClassWithArtefact:
     def __eq__(self, other):
         return self.b == other.b
 
+    def method_example(self) -> int:
+        return 2
+
 
 @pytest.mark.parametrize("dut", [SimpleClass()])
 def test_simple_class(dut) -> None:

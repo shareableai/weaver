@@ -1,5 +1,7 @@
 # Weaver - Read and Write Python Objects
 
+![Green Python in a Woven Basket](./imgs/PythonImage.png =250x250)
+
 Weaver writes Python objects to a JSON format, storing the larger items as binary blobs on the local filesystem. 
 
 ## Why?

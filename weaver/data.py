@@ -59,7 +59,7 @@ class ArtefactID:
             metadata=ItemMetadataWithVersion(
                 module=tuple(["weaver", "data"]),
                 name="ArtefactID",
-                version=weaver.__version__,
+                version=Version(*weaver.__version__),
             ),
             artefacts=set(),
             documentation={},

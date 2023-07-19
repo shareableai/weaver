@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "weaver"
+name = "weaver-json"
 version = "0.0.2"
-description = "Serialize and Deserialize Python Classes"
+description = "Serialize and Deserialize Python Classes using JSON"
 authors = ["Lissa Hyacinth <lissa@shareableai.com>"]
 license = "LGPL-3.0-or-later"
 readme = "README.md"
